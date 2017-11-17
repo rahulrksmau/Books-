@@ -1,0 +1,164 @@
+{% extends 'second/base.html' %}
+{% block title %}{{ book.name }}{% endblock %}
+{% block book_active %}active{% endblock %}
+
+
+{% block body %}
+<div class="container-fluid songs-container">
+
+    <div class="row">
+
+        <!-- Left Album Info -->
+        <div class="col-sm-4 col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <a href="{% url 'book_detail' book.id %}">
+                        {% if book.cover %}
+                            <img src="{{ book.cover.url }}" class="img-responsive">
+                        {% else %}
+                            <h3>No image to display</h3>
+                        {% endif %}
+                    </a>
+                    <h3>Name : {{ book.name }} </h3>
+                    <h4>Authors :
+                        {% for author in authors %}
+                            {{ author.name }}
+                        {% endfor %}
+                    </h4>
+                    <h4>Genre : {{ book.genre }} </h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Song Info -->
+        <div class="col-sm-8 col-md-9">
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+
+                    <h3>Book Details</h3>
+
+                    {% if error_message %}
+                        <p><strong>{{ error_message }}</strong></p>
+                    {% endif %}
+
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Pages</th>
+                            <th>Publisher</th>
+                            <th>Rating</th>
+                            <th>Authors</th>
+                            <th>Actions</th>
+
+                        </tr>
+                        </thead>
+                        <tbody>
+
+
+                            <tr>
+                                <td>{{ book.name }}</td>
+                                <td>{{ book.price }}</td>
+                                <td>{{ book.pages }}</td>
+                                <td>{{ book.publisher }}</td>
+                                <td>{{ book.rating }}</td>
+                                <td>{% for author in authors %}
+                                        {{ author.name }}
+                                    {% endfor %}
+                                </td>
+
+                                <td>
+                                    <a href="{{ book.book_file.url }}"  target="_blank">
+                                            <button type="submit" class="btn btn-primary btn-xs">
+                                            <span class="glyphicon glyphicon-book"></span>&nbsp; Read
+                                        </button>
+                                    </a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-sm-8 col-md-9">
+
+            <div class="panel panel-default">
+            <div class="panel-body">
+            <h4><strong>Comments</strong></h4>
+
+
+
+                <table class="table"  >
+                    {% for c in comments %}
+                    <tr><div class="panel panel-default">
+                        <strong>{{ c.user }}</strong> on
+                        {{ c.date }}<br>
+                        {{ c.comment }}
+                        </div>
+                     </tr>
+                    {% endfor %}
+
+                </table>
+
+                <div id="add_tuple"></div>
+
+                <table class="table">
+                    <tr>
+                                            <h4>Leave a comment </h4>
+                        {% if error_message %}
+                            <p><strong >{{ error_message }}</strong></p>
+                        {% endif %}
+                        <form class="form-horizontal" id="comment_form">
+                            {% csrf_token %}
+                            <div class="input-group"><input class="form-control" id="user" placeholder="username" required ></div><br>
+                            <div class="input-group">
+                            <input class="form-control" placeholder="Add a comment" id="cmnt" type="text" required>
+                            <input type="text" value="{{book.id}}" id="book_id" hidden>
+                            <span class="input-group-addon">
+                                <input type="submit" value="submit" class="btn-success">
+                            </span>
+                            </div>
+
+                        </form>
+                   </tr>
+                </table>
+            </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+<script type="text/javascript">
+$('#msg-list').hide();
+    $(document).on('submit', '#comment_form' , function(e){
+
+            $.ajax({
+                type: 'POST',
+                url: '/comment/',
+                data: {
+                    user : $('#user').val(),
+                    book_id : $('#book_id').val(),
+                    comment : $('#cmnt').val(),
+                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                },
+                success:function(data){
+                        $('#add_tuple').append("<div class='panel panel-default'><strong>  "+data.user+" </strong><span>  on "+data.date+"</span><br><span>"+data.comment+"</span></div>");
+                        $('#cmnt').val('');
+                        $('#user').val('');
+                        $('#msg-list').show();
+
+               }
+            });
+            return false
+
+    });
+
+</script>
+{% endblock %}
